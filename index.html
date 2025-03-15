@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Wordle Pro</title>
+    <style>
+        :root {
+            --bg-light: #f4f4f4;
+            --bg-dark: #121212;
+            --cell-size: 30px;
+            --text-light: #000;
+            --text-dark: #fff;
+            --button-bg-light: linear-gradient(145deg, #6a11cb, #2575fc);
+            --button-bg-dark: linear-gradient(145deg, #2575fc, #6a11cb);
+            --button-hover-light: linear-gradient(145deg, #2575fc, #6a11cb);
+            --button-hover-dark: linear-gradient(145deg, #6a11cb, #2575fc);
+        }
+
+        /* ========== Base Styles ========== */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            align-items: center;
+        }
+
+        /* ========== Game Elements ========== */
+        #board {
+            display: grid;
+            grid-gap: 5px;
+            margin: 10px 0;
+        }
+
+        .row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            border: 2px solid #d3d6da;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+        }
+
+        /* ========== Keyboard ========== */
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .keyboard-row {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .keyboard-key {
+            padding: 15px;
+            min-width: 30px;
+            border: none;
+            border-radius: 4px;
+            background: #d3d6da;
+            cursor: pointer;
+            text-transform: uppercase;
+            color: var(--text-light);
+        }
+
+        body.dark-mode .keyboard-key {
+            background: #3a3a3c;
+            color: var(--text-dark);
+        }
+
+        /* ========== Color Feedback ========== */
+        .cell.correct { background: #6aaa64; border-color: #6aaa64; color: white; }
+        .cell.present { background: #c9b458; border-color: #c9b458; color: white; }
+        .cell.absent { background: #787c7e; border-color: #787c7e; color: white; }
+
+        /* ========== Dark Mode ========== */
+        body.dark-mode .cell { border-color: #555; }
+
+        /* ========== Celebration Effects ========== */
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #6aaa64;
+            text-align: center;
+            animation: zoomOut 1.5s ease-out;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes zoomOut {
+            0% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* ========== Mobile Styles ========== */
+        @media (max-width: 600px) {
+            :root { --cell-size: 40px; }
+            .cell { font-size: 20px; }
+            .keyboard-key { padding: 10px; }
+            .cell {align-items: center;}
+            .keyboard {align-items: center;}
+        }
+
+        /* ========== New Features CSS ========== */
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .icon-btn {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 10;
+        }
+
+        body.dark-mode .modal {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .modal h3 {
+            margin-top: 0;
+        }
+
+        .modal select,
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .modal button {
+            margin-top: 10px;
+        }
+
+        /* ========== Message Styles ========== */
+        .message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out, slideOut 0.5s ease-out 4.5s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-50%) translateY(-100%); }
+            to { transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(-100%); }
+        }
+
+        /* ========== Navigation Bar Buttons ========== */
+        .controls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: var(--button-bg-light);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .controls button:hover {
+            background: var(--button-hover-light);
+            transform: translateY(-2px);
+        }
+
+        body.dark-mode .controls button {
+            background: var(--button-bg-dark);
+        }
+
+        body.dark-mode .controls button:hover {
+            background: var(--button-hover-dark);
+        }
+
+        /* ========== Dark/Light Mode Toggle Button ========== */
+        .toggle-mode {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .toggle-mode:hover {
+            transform: rotate(180deg);
+        }
+
+        body.dark-mode .toggle-mode::before {
+            content: "🌙";
+        }
+
+        body:not(.dark-mode) .toggle-mode::before {
+            content: "☀️";
+        }
+    </style>
+</head>
+<body>
+    <!-- Controls and New Features Icons -->
+    <div class="controls">
+        <select id="language-selector">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+        </select>
+        <button id="reset-btn">New Game</button>
+        <button class="toggle-mode"></button>
+        <button id="give-up-btn">Give Up</button>
+        <button id="hint-btn">Hint</button>
+        <!-- New Features Icons -->
+        <button class="icon-btn" id="stats-btn">📊</button>
+        <button class="icon-btn" id="how-to-play-btn">❓</button>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="stats-modal" class="modal">
+        <h3>Statistics</h3>
+        <p><strong>Games Played:</strong> <span id="games-played">0</span></p>
+        <p><strong>Games Won:</strong> <span id="games-won">0</span></p>
+        <p><strong>Win Rate:</strong> <span id="win-rate">0%</span></p>
+        <p><strong>Best Try:</strong> <span id="best-try">0</span></p>
+        <p><strong>Current Streak:</strong> <span id="current-streak">0</span></p>
+        <p><strong>Max Streak:</strong> <span id="max-streak">0</span></p>
+        <button id="reset-stats">Reset Stats</button>
+        <button id="close-stats">Close</button>
+    </div>
+
+    <!-- How to Play Modal -->
+    <div id="how-to-play-modal" class="modal">
+        <h3>How to Play</h3>
+        <p>You have to guess the hidden word in 6 tries and the color of the letters changes to show how close you are.</p>
+        <p>To start the game, just enter any word, for example:</p>
+        <p><strong>T A B L E</strong></p>
+        <p>🟨 A is in the word but in the wrong spot.</p>
+        <p>🟩 B is in the word and in the correct spot.</p>
+        <p>Another try to find matching letters in the target word.</p>
+        <p><strong>F L A S H</strong></p>
+        <p>So close!</p>
+        <p><strong>F L A M E</strong></p>
+        <p>Got it! 😊</p>
+        <button id="close-how-to-play">Close</button>
+    </div>
+
+    <!-- Game Container -->
+    <div id="board"></div>
+    <p id="hint" style="display: none;"></p>
+    <div class="keyboard" id="keyboard"></div>
+
+    <script>
+        // ================== Game Core ==================
+        const DICTIONARY_URLS = {
+            en: 'https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt',
+            es: 'https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/spanish.txt',
+            fr: 'https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/french.txt'
+        };
+
+        const KEYBOARD_LAYOUTS = {
+            en: ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'],
+            es: ['QWERTYUIOPÑ', 'ASDFGHJKLÁ', 'ZXCVBNMÚÜ'],
+            fr: ['AZERTYUIOP', 'QSDFGHJKLM', 'WXCVBNÇÈÀ']
+        };
+
+        let currentLanguage = 'en';
+        let targetWord = '';
+        let attempts = 0;
+        let wordLists = { en: [], es: [], fr: [] };
+
+        // ================== Dictionary Loader ==================
+        async function loadDictionary(lang) {
+            try {
+                const response = await fetch(DICTIONARY_URLS[lang]);
+                const text = await response.text();
+                wordLists[lang] = text.toUpperCase().split('\n')
+                    .map(word => word.trim().replace(/[^A-Z]/g, ''))
+                    .filter(word => word.length === 5);
+            } catch {
+                const chars = {
+                    en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                    es: 'AÁBCDEÉFGHIÍJKLMNÑOÓPQRSTUÚÜVWXYZ',
+                    fr: 'AÀÂÆBCÇDEÉÈÊËFGHIÎÏJKLMNOÔŒPQRSTUÙÛÜVWXYŸZ'
+                }[lang];
+                wordLists[lang] = Array.from({length: 1000}, () => 
+                    Array.from({length: 5}, () => 
+                        chars[Math.floor(Math.random() * chars.length)]
+                    ).join('')
+                );
+            }
+        }
+
+        // ================== Game Initialization ==================
+        async function initializeGame() {
+            if(wordLists[currentLanguage].length === 0) await loadDictionary(currentLanguage);
+            
+            targetWord = wordLists[currentLanguage][
+                Math.floor(Math.random() * wordLists[currentLanguage].length)
+            ];
+            attempts = 0;
+            renderBoard();
+            updateKeyboard();
+            document.getElementById('hint').style.display = 'none';
+            document.getElementById('message')?.remove();
+        }
+
+        // ================== Celebration Effect ==================
+        function createCelebration() {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = '🎉 Congratulations! 🎉';
+            document.body.appendChild(celebration);
+
+            // Confetti
+            for(let i=0; i<50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+
+            setTimeout(() => celebration.remove(), 1500);
+        }
+
+        // ================== Game Logic ==================
+        function renderBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            for(let i=0; i<6; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                for(let j=0; j<5; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    row.appendChild(cell);
+                }
+                board.appendChild(row);
+            }
+        }
+
+        function handleInput(key) {
+            const row = document.getElementById('board').children[attempts];
+            const cells = row.children;
+            
+            for(let cell of cells) {
+                if(!cell.textContent) {
+                    cell.textContent = key;
+                    break;
+                }
+            }
+
+            if(cells[4].textContent) {
+                setTimeout(() => checkGuess(row), 500);
+            }
+        }
+
+        function checkGuess(row) {
+            const guess = Array.from(row.children).map(cell => cell.textContent).join('');
+            let correct = 0;
+
+            Array.from(row.children).forEach((cell, i) => {
+                cell.classList.remove('correct', 'present', 'absent');
+                
+                if(guess[i] === targetWord[i]) {
+                    cell.classList.add('correct');
+                    correct++;
+                } else if(targetWord.includes(guess[i])) {
+                    cell.classList.add('present');
+                } else {
+                    cell.classList.add('absent');
+                }
+            });
+
+            if(correct === 5) {
+                createCelebration();
+                incrementGamesWon();
+                setTimeout(initializeGame, 3000);
+            } else if(attempts === 5) {
+                showMessage(`Game Over! The word was: ${targetWord}`);
+                resetStreak();
+                setTimeout(initializeGame, 5000);
+            } else {
+                attempts++;
+            }
+            incrementGamesPlayed();
+        }
+
+        // ================== Rest of Functions ==================
+        function updateKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            
+            KEYBOARD_LAYOUTS[currentLanguage].forEach(rowKeys => {
+                const row = document.createElement('div');
+                row.className = 'keyboard-row';
+                
+                rowKeys.split('').forEach(key => {
+                    const btn = document.createElement('button');
+                    btn.className = 'keyboard-key';
+                    btn.textContent = key;
+                    btn.onclick = () => handleInput(key);
+                    row.appendChild(btn);
+                });
+
+                if(rowKeys === KEYBOARD_LAYOUTS[currentLanguage][2]) {
+                    const backspace = document.createElement('button');
+                    backspace.className = 'keyboard-key';
+                    backspace.textContent = '⌫';
+                    backspace.onclick = () => handleBackspace();
+                    row.appendChild(backspace);
+                }
+
+                keyboard.appendChild(row);
+            });
+        }
+
+        function handleBackspace() {
+            const row = document.getElementById('board').children[attempts];
+            const cells = row.children;
+            
+            for(let i=4; i>=0; i--) {
+                if(cells[i].textContent) {
+                    cells[i].textContent = '';
+                    break;
+                }
+            }
+        }
+
+        function showHint() {
+            const hint = document.getElementById('hint');
+            hint.textContent = `Hint: Starts with "${targetWord[0]}" and ends with "${targetWord.slice(-1)}"`;
+            hint.style.display = 'block';
+        }
+
+        function showMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            setTimeout(() => messageDiv.remove(), 5000);
+        }
+
+        // ================== Event Listeners ==================
+        document.getElementById('language-selector').addEventListener('change', async (e) => {
+            currentLanguage = e.target.value;
+            await initializeGame();
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', initializeGame);
+
+        document.querySelector('.toggle-mode').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+
+        document.getElementById('give-up-btn').addEventListener('click', () => {
+            showMessage(`The word was: ${targetWord}`);
+            initializeGame();
+        });
+
+        document.getElementById('hint-btn').addEventListener('click', showHint);
+
+        // ================== Initialize Game ==================
+        (async () => {
+            await Promise.all([
+                loadDictionary('en'),
+                loadDictionary('es'),
+                loadDictionary('fr')
+            ]);
+            initializeGame();
+        })();
+
+        // ================== New Features Logic ==================
+        const statsBtn = document.getElementById("stats-btn");
+        const statsModal = document.getElementById("stats-modal");
+        const closeStatsBtn = document.getElementById("close-stats");
+        const resetStatsBtn = document.getElementById("reset-stats");
+        const gamesPlayedElement = document.getElementById("games-played");
+        const gamesWonElement = document.getElementById("games-won");
+        const winRateElement = document.getElementById("win-rate");
+        const bestTryElement = document.getElementById("best-try");
+        const currentStreakElement = document.getElementById("current-streak");
+        const maxStreakElement = document.getElementById("max-streak");
+
+        let gamesPlayed = 0;
+        let gamesWon = 0;
+        let bestTry = 0;
+        let currentStreak = 0;
+        let maxStreak = 0;
+
+        statsBtn.addEventListener("click", () => {
+            statsModal.style.display = "block";
+            updateStats();
+        });
+
+        closeStatsBtn.addEventListener("click", () => {
+            statsModal.style.display = "none";
+        });
+
+        resetStatsBtn.addEventListener("click", () => {
+            gamesPlayed = 0;
+            gamesWon = 0;
+            bestTry = 0;
+            currentStreak = 0;
+            maxStreak = 0;
+            updateStats();
+        });
+
+        function updateStats() {
+            gamesPlayedElement.textContent = gamesPlayed;
+            gamesWonElement.textContent = gamesWon;
+            const winRate = gamesPlayed === 0 ? 0 : Math.round((gamesWon / gamesPlayed) * 100);
+            winRateElement.textContent = `${winRate}%`;
+            bestTryElement.textContent = bestTry;
+            currentStreakElement.textContent = currentStreak;
+            maxStreakElement.textContent = maxStreak;
+        }
+
+        function incrementGamesPlayed() {
+            gamesPlayed++;
+            updateStats();
+        }
+
+        function incrementGamesWon() {
+            gamesWon++;
+            currentStreak++;
+            if (currentStreak > maxStreak) maxStreak = currentStreak;
+            updateStats();
+        }
+
+        function resetStreak() {
+            currentStreak = 0;
+            updateStats();
+        }
+
+        const howToPlayBtn = document.getElementById("how-to-play-btn");
+        const howToPlayModal = document.getElementById("how-to-play-modal");
+        const closeHowToPlayBtn = document.getElementById("close-how-to-play");
+
+        howToPlayBtn.addEventListener("click", () => {
+            howToPlayModal.style.display = "block";
+        });
+
+        closeHowToPlayBtn.addEventListener("click", () => {
+            howToPlayModal.style.display = "none";
+        });
+    </script>
+</body>
+</html>
