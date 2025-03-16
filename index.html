@@ -9,13 +9,11 @@
         :root {
             --bg-light: #f4f4f4;
             --bg-dark: #121212;
-            --cell-size: 30px;
             --text-light: #000;
             --text-dark: #fff;
-            --button-bg-light: linear-gradient(145deg, #6a11cb, #2575fc);
-            --button-bg-dark: linear-gradient(145deg, #2575fc, #6a11cb);
-            --button-hover-light: linear-gradient(145deg, #2575fc, #6a11cb);
-            --button-hover-dark: linear-gradient(145deg, #6a11cb, #2575fc);
+            --icon-light: #000; /* Dark icons in light mode */
+            --icon-dark: #fff; /* Light icons in dark mode */
+            --cell-size: 40px; /* Adjusted cell size */
         }
 
         body {
@@ -32,7 +30,6 @@
         body.dark-mode {
             background-color: var(--bg-dark);
             color: var(--text-dark);
-            align-items: center;
         }
 
         /* ========== Game Elements ========== */
@@ -137,27 +134,52 @@
             .keyboard {align-items: center;}
         }
 
-        /* ========== New Features CSS ========== */
+        /* ========== Navigation Bar ========== */
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 5px; /* Reduced gap between icons */
             align-items: center;
-            margin-top: 20px; /* Added padding at the top */
-            margin-bottom: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding: 5px; /* Reduced padding */
         }
 
-        .icon-btn {
+        .controls button {
+            background: none; /* No background color */
+            border: none;
+            cursor: pointer;
+            font-size: 24px; /* Slightly larger icons */
+            color: var(--icon-light); /* Default icon color for light mode */
+            transition: transform 0.2s;
+            padding: 5px; /* Reduced padding */
+        }
+
+        body.dark-mode .controls button {
+            color: var(--icon-dark); /* Icon color for dark mode */
+        }
+
+        .controls button:hover {
+            transform: scale(1.1);
+        }
+
+        /* ========== Dark Mode Toggle ========== */
+        .toggle-mode {
             font-size: 24px;
             background: none;
             border: none;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.3s;
         }
 
-        .icon-btn:hover {
-            transform: scale(1.1);
+        .toggle-mode::before {
+            content: "☀️"; /* Light mode icon */
         }
 
+        body.dark-mode .toggle-mode::before {
+            content: "🌙"; /* Dark mode icon */
+        }
+
+        /* ========== Modal Styles ========== */
         .modal {
             position: fixed;
             top: 50%;
@@ -180,16 +202,31 @@
             margin-top: 0;
         }
 
-        .modal select,
-        .modal input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin: 10px 0;
-        }
-
         .modal button {
             margin-top: 10px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        body.dark-mode .modal-header .close-btn {
+            color: var(--text-dark);
         }
 
         /* ========== Message Styles ========== */
@@ -216,82 +253,30 @@
             from { transform: translateX(-50%) translateY(0); }
             to { transform: translateX(-50%) translateY(-100%); }
         }
-
-        /* ========== Navigation Bar Buttons ========== */
-        .controls button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            background: var(--button-bg-light);
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-        }
-
-        .controls button:hover {
-            background: var(--button-hover-light);
-            transform: translateY(-2px);
-        }
-
-        body.dark-mode .controls button {
-            background: var(--button-bg-dark);
-        }
-
-        body.dark-mode .controls button:hover {
-            background: var(--button-hover-dark);
-        }
-
-        /* ========== Dark/Light Mode Toggle Button ========== */
-        .toggle-mode {
-            font-size: 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-
-        .toggle-mode:hover {
-            transform: rotate(180deg);
-        }
-
-        body.dark-mode .toggle-mode::before {
-            content: "🌙";
-        }
-
-        body:not(.dark-mode) .toggle-mode::before {
-            content: "☀️";
-        }
     </style>
 </head>
 <body>
     <!-- Controls and New Features Icons -->
     <div class="controls">
         <select id="language-selector">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
+            <option value="en">EN</option> <!-- English -->
+            <option value="es">ES</option> <!-- Spanish -->
+            <option value="fr">FR</option> <!-- French -->
         </select>
-        <select id="word-length-selector">
-            <option value="2">2 Letters</option>
-            <option value="3">3 Letters</option>
-            <option value="4">4 Letters</option>
-            <option value="5">5 Letters</option>
-            <option value="6">6 Letters</option>
-            <option value="7">7 Letters</option>
-        </select>
-        <button id="reset-btn">New Game</button>
-        <button class="toggle-mode"></button>
-        <button id="give-up-btn">Give Up</button>
-        <button id="hint-btn">Hint</button>
-        <!-- New Features Icons -->
-        <button class="icon-btn" id="stats-btn">📊</button>
-        <button class="icon-btn" id="how-to-play-btn">❓</button>
+        <button id="reset-btn">🔄</button>
+        <button class="toggle-mode"></button> <!-- Dark Mode Toggle -->
+        <button id="give-up-btn">🏳️</button>
+        <button id="hint-btn">💡</button>
+        <button id="stats-btn">📊</button>
+        <button id="how-to-play-btn">❓</button>
     </div>
 
     <!-- Statistics Modal -->
     <div id="stats-modal" class="modal">
-        <h3>Statistics</h3>
+        <div class="modal-header">
+            <h3>Statistics</h3>
+            <button class="close-btn">✕</button>
+        </div>
         <p><strong>Games Played:</strong> <span id="games-played">0</span></p>
         <p><strong>Games Won:</strong> <span id="games-won">0</span></p>
         <p><strong>Win Rate:</strong> <span id="win-rate">0%</span></p>
@@ -299,12 +284,14 @@
         <p><strong>Current Streak:</strong> <span id="current-streak">0</span></p>
         <p><strong>Max Streak:</strong> <span id="max-streak">0</span></p>
         <button id="reset-stats">Reset Stats</button>
-        <button id="close-stats">Close</button>
     </div>
 
     <!-- How to Play Modal -->
     <div id="how-to-play-modal" class="modal">
-        <h3>How to Play</h3>
+        <div class="modal-header">
+            <h3>How to Play</h3>
+            <button class="close-btn">✕</button>
+        </div>
         <p>You have to guess the hidden word in 6 tries and the color of the letters changes to show how close you are.</p>
         <p>To start the game, just enter any word, for example:</p>
         <p><strong>T A B L E</strong></p>
@@ -315,7 +302,6 @@
         <p>So close!</p>
         <p><strong>F L A M E</strong></p>
         <p>Got it! 😊</p>
-        <button id="close-how-to-play">Close</button>
     </div>
 
     <!-- Game Container -->
@@ -525,11 +511,6 @@
             await initializeGame();
         });
 
-        document.getElementById('word-length-selector').addEventListener('change', async (e) => {
-            wordLength = parseInt(e.target.value);
-            await initializeGame();
-        });
-
         document.getElementById('reset-btn').addEventListener('click', initializeGame);
 
         document.querySelector('.toggle-mode').addEventListener('click', () => {
@@ -556,7 +537,7 @@
         // ================== New Features Logic ==================
         const statsBtn = document.getElementById("stats-btn");
         const statsModal = document.getElementById("stats-modal");
-        const closeStatsBtn = document.getElementById("close-stats");
+        const closeStatsBtn = statsModal.querySelector(".close-btn");
         const resetStatsBtn = document.getElementById("reset-stats");
         const gamesPlayedElement = document.getElementById("games-played");
         const gamesWonElement = document.getElementById("games-won");
@@ -571,15 +552,50 @@
         let currentStreak = 0;
         let maxStreak = 0;
 
+        // ================== Modal Management ==================
+        let currentModal = null;
+
+        function openModal(modal) {
+            if (currentModal) {
+                currentModal.style.display = "none";
+            }
+            modal.style.display = "block";
+            currentModal = modal;
+        }
+
+        function closeModal() {
+            if (currentModal) {
+                currentModal.style.display = "none";
+                currentModal = null;
+            }
+        }
+
+        // Close modal when clicking outside of it
+        document.addEventListener('click', (event) => {
+            if (currentModal && !currentModal.contains(event.target) && !event.target.closest('.controls button')) {
+                closeModal();
+            }
+        });
+
+        // ================== Event Listeners for Modals ==================
         statsBtn.addEventListener("click", () => {
-            statsModal.style.display = "block";
+            openModal(statsModal);
             updateStats();
         });
 
-        closeStatsBtn.addEventListener("click", () => {
-            statsModal.style.display = "none";
+        closeStatsBtn.addEventListener("click", closeModal);
+
+        const howToPlayBtn = document.getElementById("how-to-play-btn");
+        const howToPlayModal = document.getElementById("how-to-play-modal");
+        const closeHowToPlayBtn = howToPlayModal.querySelector(".close-btn");
+
+        howToPlayBtn.addEventListener("click", () => {
+            openModal(howToPlayModal);
         });
 
+        closeHowToPlayBtn.addEventListener("click", closeModal);
+
+        // ================== Reset Stats ==================
         resetStatsBtn.addEventListener("click", () => {
             gamesPlayed = 0;
             gamesWon = 0;
@@ -615,18 +631,6 @@
             currentStreak = 0;
             updateStats();
         }
-
-        const howToPlayBtn = document.getElementById("how-to-play-btn");
-        const howToPlayModal = document.getElementById("how-to-play-modal");
-        const closeHowToPlayBtn = document.getElementById("close-how-to-play");
-
-        howToPlayBtn.addEventListener("click", () => {
-            howToPlayModal.style.display = "block";
-        });
-
-        closeHowToPlayBtn.addEventListener("click", () => {
-            howToPlayModal.style.display = "none";
-        });
     </script>
 </body>
 </html>
